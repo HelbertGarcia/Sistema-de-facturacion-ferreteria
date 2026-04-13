@@ -1,0 +1,86 @@
+@model Ferreteria.Application.DTOs.Facturacion.ReporteCajaDto
+@{
+    ViewData["Title"] = "Cierre de Caja y Reportes";
+    DateTime fechaBase = ViewBag.FechaReporte;
+}
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="title-header">
+        <h3><i class="fa-solid fa-calculator"></i> Arqueo y Cierre Diario</h3>
+    </div>
+    
+    <div style="background: var(--bg-main); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <form asp-action="Reportes" method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+                <label style="font-weight: 500;">Día a consultar:</label>
+                <input type="date" name="fecha" class="form-control" value="@fechaBase.ToString("yyyy-MM-dd")" style="max-width: 200px;" />
+                <button type="submit" class="btn btn-primary">Generar</button>
+            </form>
+        </div>
+        <div style="font-weight: 600; color: var(--text-secondary);">
+            Fecha Reporte: <span style="color: var(--text-primary);">@fechaBase.ToString("dd/MMM/yyyy")</span>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+    
+    <div class="card" style="border-top: 4px solid var(--brand-success);">
+        <h4 style="color: var(--text-secondary); margin-bottom: 1.5rem; display: flex; justify-content: space-between;">
+            Resumen de Recaudación
+            <i class="fa-solid fa-money-bill-trend-up"></i>
+        </h4>
+        
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--brand-success); margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            @Model.TotalVendido.ToString("C2")
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-weight: 500;">💵 Efectivo</span>
+            <span style="font-weight: 600;">@Model.TotalEfectivo.ToString("C2")</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-weight: 500;">💳 Tarjetas</span>
+            <span style="font-weight: 600;">@Model.TotalTarjeta.ToString("C2")</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+            <span style="font-weight: 500;">🏦 Transferencias</span>
+            <span style="font-weight: 600;">@Model.TotalTransferencia.ToString("C2")</span>
+        </div>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--brand-primary);">
+        <h4 style="color: var(--text-secondary); margin-bottom: 1.5rem; display: flex; justify-content: space-between;">
+            Métricas de Venta
+            <i class="fa-solid fa-chart-line"></i>
+        </h4>
+        
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <div style="flex: 1; background: #f8fafc; padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid var(--border-color);">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--brand-primary);">@Model.CantidadFacturas</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 0.5rem; font-weight: 600;">Facturas Emitidas</div>
+            </div>
+            
+            <div style="flex: 1; background: #fff1f2; padding: 1.5rem; border-radius: 8px; text-align: center; border: 1px solid #fecdd3;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--brand-danger);">@Model.CantidadAnuladas</div>
+                <div style="font-size: 0.85rem; color: var(--brand-danger); text-transform: uppercase; margin-top: 0.5rem; font-weight: 600;">Devoluciones/Anuladas</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: auto; padding-top: 1rem;">
+            <button class="btn btn-outline" style="width: 100%; border-style: dashed;" onclick="window.print();">
+                <i class="fa-solid fa-print"></i> Imprimir Cierre
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body * { visibility: hidden; }
+        .card, .card * { visibility: visible; }
+        .card { position: relative; border: none !important; box-shadow: none !important; }
+        .btn, .sidebar, .topvar, form { display: none !important; }
+        h3 { font-size: 24px; padding-bottom: 10px; border-bottom: 2px solid #000; }
+    }
+</style>

@@ -1,0 +1,100 @@
+@model IEnumerable<Ferreteria.Application.DTOs.Productos.ProductoDto>
+@{
+    ViewData["Title"] = "Inventario Maestro";
+}
+
+<div class="card">
+    <div class="title-header">
+        <h3>Catálogo de Productos</h3>
+        <div style="display:flex; gap:0.5rem;">
+            <a asp-action="Categorias" class="btn btn-outline"><i class="fa-solid fa-list"></i> Categorías</a>
+            <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo Artículo</a>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <form asp-action="Index" method="get" class="d-flex" style="display: flex; gap: 0.5rem; flex: 1; max-width: 600px;">
+            <input type="text" name="search" class="form-control" placeholder="Buscar por SKU o nombre..." value="@ViewData["Search"]" />
+            <select name="categoriaId" class="form-control" style="max-width:200px;" asp-items="@ViewBag.Categorias">
+                <option value="">Todas las categorías</option>
+            </select>
+            <button type="submit" class="btn btn-outline"><i class="fa-solid fa-filter"></i> Filtrar</button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Costo</th>
+                    <th>Venta (RD$)</th>
+                    <th style="text-align: center;">Stock</th>
+                    <th>Estado</th>
+                    <th style="width: 120px; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td style="font-family: monospace; font-size: 0.9rem; color: var(--text-secondary);">@p.Sku</td>
+                        <td>
+                            <div style="font-weight: 500;">@p.Nombre</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">@p.Marca</div>
+                        </td>
+                        <td><span class="badge" style="background:#f1f5f9; color:#475569;">@p.CategoriaNombre</span></td>
+                        <td>@p.PrecioCosto.ToString("C2")</td>
+                        <td style="font-weight: 600;">@p.PrecioVenta.ToString("C2")</td>
+                        <td style="text-align: center;">
+                            @if(p.RequiereReposicion)
+                            {
+                                <span class="badge badge-inactive" title="Mínimo Requerido: @p.StockMinimo"><i class="fa-solid fa-triangle-exclamation"></i> @p.StockActual</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-active">@p.StockActual</span>
+                            }
+                        </td>
+                        <td>
+                            @if (p.Estado == "Activo")
+                            {
+                                <span class="badge badge-active">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactive">Desc.</span>
+                            }
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="display:flex; gap:0.5rem; justify-content:center;">
+                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline" style="padding: 0.4rem 0.6rem;"><i class="fa-solid fa-pen"></i></a>
+                                @if(p.Estado == "Activo")
+                                {
+                                    <form asp-action="Descontinuar" asp-route-id="@p.Id" method="post" style="margin:0;" onsubmit="return confirm('¿Descontinuar este producto?');">
+                                        <button type="submit" class="btn btn-danger" style="padding: 0.4rem 0.6rem;" title="Descontinuar"><i class="fa-solid fa-ban"></i></button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Activar" asp-route-id="@p.Id" method="post" style="margin:0;">
+                                        <button type="submit" class="btn btn-success" style="padding: 0.4rem 0.6rem;" title="Activar"><i class="fa-solid fa-check"></i></button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        
+        @if(!Model.Any()) {
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i class="fa-solid fa-box-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+                <p>No hay productos registrados con estos filtros.</p>
+            </div>
+        }
+    </div>
+</div>

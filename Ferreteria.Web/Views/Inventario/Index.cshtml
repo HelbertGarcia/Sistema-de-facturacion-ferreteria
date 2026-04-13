@@ -1,0 +1,94 @@
+@model IEnumerable<Ferreteria.Application.DTOs.Inventario.MovimientoDto>
+@{
+    ViewData["Title"] = "Registro de Movimientos";
+    var dashboard = ViewBag.DashboardInfo as Ferreteria.Application.DTOs.Inventario.DashboardInventarioDto;
+}
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card" style="border-left: 4px solid var(--brand-primary); padding: 1rem 1.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Valorizado Total (Costo)</span>
+        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.2rem;">RD$ @(dashboard?.TotalValor.ToString("N2"))</div>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--brand-success); padding: 1rem 1.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Productos Activos</span>
+        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.2rem;">@dashboard?.TotalProductos</div>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--brand-warning); padding: 1rem 1.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Stock Bajo</span>
+        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.2rem; color: var(--brand-warning);">@dashboard?.ProductosStockBajo</div>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--brand-danger); padding: 1rem 1.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Agotados</span>
+        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.2rem; color: var(--brand-danger);">@dashboard?.ProductosAgotados</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="title-header">
+        <h3>Histórico de Movimientos (Registro)</h3>
+        <div style="display:flex; gap:0.5rem;">
+            <a asp-action="Ajuste" class="btn btn-outline" style="color: var(--brand-danger); border-color: var(--brand-danger);"><i class="fa-solid fa-arrow-down-wide-short"></i> Salida/Merma</a>
+            <a asp-action="Entrada" class="btn btn-success"><i class="fa-solid fa-truck-ramp-box"></i> Registrar Compra (Entrada)</a>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+        <form asp-action="Index" method="get" style="display: flex; gap: 0.5rem; max-width: 500px;">
+            <select name="productoId" asp-items="@ViewBag.ProductosList" class="form-control">
+                <option value="">-- Todos los Productos --</option>
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filtrar</button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Movimiento</th>
+                    <th>Motivo</th>
+                    <th style="text-align:right;">Cant.</th>
+                    <th>Usuario</th>
+                    <th>Ref./Comprobante</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    <tr>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">@m.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <div style="font-weight: 500;">@m.ProductoNombre</div>
+                            <div style="font-size: 0.8rem; font-family: monospace; color: var(--text-muted);">@m.ProductoSku</div>
+                        </td>
+                        <td>
+                            @if (m.TipoMovimiento == "Entrada")
+                            {
+                                <span class="badge badge-active"><i class="fa-solid fa-arrow-up"></i> Entrada</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactive"><i class="fa-solid fa-arrow-down"></i> Salida</span>
+                            }
+                        </td>
+                        <td>@m.Motivo</td>
+                        <td style="text-align:right; font-weight:600; @(m.TipoMovimiento == "Entrada" ? "color:var(--brand-success);" : "color:var(--brand-danger);")">
+                            @(m.TipoMovimiento == "Entrada" ? "+" : "-")@m.Cantidad
+                        </td>
+                        <td style="font-size: 0.85rem;">@m.UsuarioCreacion</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">@(string.IsNullOrEmpty(m.ProveedorOReferencia) ? "-" : m.ProveedorOReferencia)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        
+        @if(!Model.Any()) {
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i class="fa-solid fa-clipboard-list" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+                <p>No hay movimientos registrados.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,75 @@
+@model IEnumerable<Ferreteria.Application.DTOs.Clientes.ClienteDto>
+@{
+    ViewData["Title"] = "Gestión de Clientes";
+}
+
+<div class="card">
+    <div class="title-header">
+        <h3>Directorio de Clientes</h3>
+        <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Nuevo Cliente</a>
+    </div>
+
+    <div class="form-group" style="max-width: 400px;">
+        <form asp-action="Index" method="get" class="d-flex" style="display: flex; gap: 0.5rem;">
+            <input type="text" name="search" class="form-control" placeholder="Buscar por nombre o cédula/RNC..." value="@ViewData["Search"]" />
+            <button type="submit" class="btn btn-outline"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre / Razón Social</th>
+                    <th>Identificación</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th style="width: 150px; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td style="font-weight: 500;">@c.NombreRazonSocial</td>
+                        <td><span class="badge" style="background:#e2e8f0; color:#475569;">@c.TipoIdentificacion</span> @c.NumeroIdentificacion</td>
+                        <td>@(!string.IsNullOrEmpty(c.Telefono) ? c.Telefono : "-")</td>
+                        <td>
+                            @if (c.Estado == "Activo")
+                            {
+                                <span class="badge badge-active">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-inactive">Inactivo</span>
+                            }
+                        </td>
+                        <td style="text-align: center;">
+                            @if (c.NumeroIdentificacion != "00000000000") // Cannot edit/delete final consumer
+                            {
+                                <div style="display:flex; gap:0.5rem; justify-content:center;">
+                                    <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-outline" style="padding: 0.4rem 0.6rem;"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <form asp-action="Delete" asp-route-id="@c.Id" method="post" onsubmit="return confirm('¿Confirma que desea dar de baja este cliente?');" style="margin:0;">
+                                        <button type="submit" class="btn btn-danger" style="padding: 0.4rem 0.6rem;"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                    <a asp-controller="Factura" asp-action="Index" asp-route-search="@c.NombreRazonSocial" class="btn btn-success" style="padding: 0.4rem 0.6rem;" title="Historial"><i class="fa-solid fa-clock-rotate-left"></i></a>
+                                </div>
+                            }
+                            else
+                            {
+                                <span style="font-size: 0.8rem; color: #94a3b8;"><i class="fa-solid fa-lock"></i> Sistema</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        
+        @if(!Model.Any()) {
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+                <p>No se encontraron clientes.</p>
+            </div>
+        }
+    </div>
+</div>

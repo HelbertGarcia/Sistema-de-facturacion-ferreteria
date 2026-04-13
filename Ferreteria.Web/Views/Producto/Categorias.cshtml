@@ -1,0 +1,48 @@
+@model IEnumerable<Ferreteria.Application.DTOs.Productos.CategoriaDto>
+@{
+    ViewData["Title"] = "Gestión de Categorías";
+}
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+    
+    <div class="card">
+        <h4 style="margin-bottom: 1rem;"><i class="fa-solid fa-folder-plus"></i> Nueva Categoría</h4>
+        <form asp-action="GuardarCategoria" method="post">
+            <input type="hidden" name="Id" value="0" />
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="Nombre" class="form-control" autocomplete="off" required />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="title-header">
+            <h3>Categorías Existentes</h3>
+            <a asp-action="Index" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver a Productos</a>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th style="text-align: center;">Productos Asociados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td style="font-weight: 500;">@c.Nombre</td>
+                            <td style="text-align: center;">
+                                <span class="badge" style="background:#e2e8f0; color:#475569; font-size: 0.9rem;">@c.CantidadProductos</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,317 @@
+@{
+    ViewData["Title"] = "Terminal Punto de Venta (POS)";
+}
+
+<style>
+    /* POS Specific Styles */
+    .pos-container {
+        display: grid;
+        grid-template-columns: 2.5fr 1.2fr;
+        gap: 1.5rem;
+        height: calc(100vh - 120px);
+    }
+    
+    .pos-left { display: flex; flex-direction: column; gap: 1rem; }
+    
+    .cart-table { flex: 1; overflow-y: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
+    .cart-table table { width: 100%; border-collapse: collapse; }
+    .cart-table th { background: #f1f5f9; position: sticky; top: 0; padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); z-index: 1; }
+    .cart-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+    
+    .qty-input { width: 60px; text-align: center; border: 1px solid var(--border-color); border-radius: 4px; padding: 0.25rem; }
+    
+    .pos-right {
+        background: white; border-radius: 8px; border: 1px solid var(--border-color);
+        display: flex; flex-direction: column;
+    }
+    
+    .totals-panel {
+        background: #f8fafc; padding: 1.5rem; border-bottom: 1px solid var(--border-color);
+    }
+    
+    .totals-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .totals-row.grand-total { font-size: 1.8rem; font-weight: 800; color: var(--brand-primary); margin-top: 1rem; border-top: 2px solid var(--border-color); padding-top: 1rem; }
+    
+    .checkout-panel { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+    
+    .search-results {
+        position: absolute; width: 100%; background: white; border: 1px solid var(--border-color);
+        border-radius: 4px; box-shadow: var(--shadow-md); z-index: 20; max-height: 250px; overflow-y: auto;
+        display: none; top: 100%; margin-top: 4px;
+    }
+    .search-item { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; }
+    .search-item:hover { background: #f8fafc; }
+</style>
+
+<div class="pos-container">
+    
+    <!-- Left Side: Catalog Search and Cart -->
+    <div class="pos-left">
+        <div class="card" style="padding: 1rem; position: relative;">
+            <div style="display: flex; gap: 0.5rem;">
+                <div style="flex: 1; position: relative;">
+                    <i class="fa-solid fa-barcode" style="position: absolute; left: 12px; top: 14px; color: var(--text-muted);"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Escanear código de barras o buscar por nombre..." style="padding-left: 2.5rem; font-size: 1.1rem;" autocomplete="off" />
+                    
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">🗑️</th>
+                        <th>Producto</th>
+                        <th style="text-align: right; width: 120px;">Precio (RD$)</th>
+                        <th style="text-align: center; width: 100px;">Cant.</th>
+                        <th style="text-align: right; width: 120px;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <!-- Cart items rendered by JS -->
+                </tbody>
+            </table>
+            <div id="emptyCart" style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                <i class="fa-solid fa-cart-shopping" style="font-size: 3rem; opacity: 0.1; margin-bottom: 1rem;"></i>
+                <p>El carrito está vacío. Agregue productos para comenzar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Totals and Checkout -->
+    <div class="pos-right">
+        <div class="totals-panel">
+            <div class="totals-row">
+                <span class="text-secondary">Subtotal:</span>
+                <span id="lblSubtotal">RD$ 0.00</span>
+            </div>
+            <div class="totals-row">
+                <span class="text-secondary">ITBIS (Sobre base exenta/gravada):</span>
+                <span id="lblItbis">RD$ 0.00</span>
+            </div>
+            <div class="totals-row grand-total">
+                <span>TOTAL:</span>
+                <span id="lblTotal">RD$ 0.00</span>
+            </div>
+        </div>
+
+        <div class="checkout-panel">
+            <div class="form-group">
+                <label class="form-label">Cliente</label>
+                <select id="selCliente" class="form-control">
+                    @foreach (var c in ViewBag.Clientes)
+                    {
+                        var isFinal = (c.NumeroIdentificacion == "00000000000");
+                        if(isFinal) {
+                            <option value="@c.Id" selected>@c.NombreRazonSocial (Consumidor Final)</option>
+                        } else {
+                            <option value="@c.Id">@c.NombreRazonSocial - @c.NumeroIdentificacion</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Método de Pago</label>
+                <select id="selMetodoPago" class="form-control">
+                    <option value="Efectivo">💵 Efectivo</option>
+                    <option value="Tarjeta">💳 Tarjeta de Crédito/Débito</option>
+                    <option value="Transferencia">🏦 Transferencia Bancaria</option>
+                </select>
+            </div>
+
+            <button id="btnPagar" class="btn btn-success" style="padding: 1rem; font-size: 1.2rem; margin-top: auto; border-radius: 8px;">
+                <i class="fa-solid fa-cash-register"></i> FACTURAR
+            </button>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        const cart = [];
+        const formatter = new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' });
+
+        // Search Product Logic
+        let searchTimeout;
+        $('#searchInput').on('input', function() {
+            clearTimeout(searchTimeout);
+            const query = $(this).val();
+            
+            if(query.length < 2) {
+                $('#searchResults').hide();
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                $.get('/Factura/BuscarProductoApi', { q: query }, function(data) {
+                    const resultsBox = $('#searchResults');
+                    resultsBox.empty();
+                    
+                    if(data.length === 0) {
+                        resultsBox.append('<div style="padding:1rem; color:#94a3b8;">No se encontraron productos con stock.</div>');
+                    } else {
+                        data.forEach(p => {
+                            resultsBox.append(`
+                                <div class="search-item" onclick="addToCart(${p.id}, '${p.sku}', '${p.nombre.replace(/'/g,"\\'").replace(/"/g,"&quot;")}', ${p.precioVenta}, ${p.tieneItbis}, ${p.stock})">
+                                    <div>
+                                        <div style="font-weight:600;">${p.nombre}</div>
+                                        <div style="font-size:0.8rem; color:#64748b;">SKU: ${p.sku} | Stock: ${p.stock}</div>
+                                    </div>
+                                    <div style="font-weight:700; color:#2563eb;">
+                                        ${formatter.format(p.precioVenta)}
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    }
+                    resultsBox.show();
+                });
+            }, 300);
+        });
+
+        $(document).click(function(e) {
+            if(!$(e.target).closest('.pos-left .card').length) {
+                $('#searchResults').hide();
+            }
+        });
+
+        // Cart Logic
+        window.addToCart = function(id, sku, nombre, precio, tieneItbis, maxStock) {
+            $('#searchResults').hide();
+            $('#searchInput').val('').focus();
+
+            const existing = cart.find(x => x.id === id);
+            if(existing) {
+                if(existing.cantidad < maxStock) {
+                    existing.cantidad++;
+                } else {
+                    alert('No hay suficiente stock para agregar más.');
+                }
+            } else {
+                cart.unshift({ id, sku, nombre, precio, tieneItbis, cantidad: 1, maxStock });
+            }
+            
+            renderCart();
+        };
+
+        window.updateQty = function(id, input) {
+            const val = parseInt($(input).val());
+            const item = cart.find(x => x.id === id);
+            
+            if(val > 0 && val <= item.maxStock) {
+                item.cantidad = val;
+            } else {
+                // reset to max or 1
+                $(input).val(item.cantidad);
+                if(val > item.maxStock) alert('Solo existen ' + item.maxStock + ' unidades en stock.');
+            }
+            renderCart();
+        };
+
+        window.removeItem = function(id) {
+            const ix = cart.findIndex(x => x.id === id);
+            if(ix > -1) cart.splice(ix, 1);
+            renderCart();
+        };
+
+        function renderCart() {
+            const tbody = $('#cartBody');
+            tbody.empty();
+
+            if(cart.length === 0) {
+                $('#emptyCart').show();
+            } else {
+                $('#emptyCart').hide();
+                
+                cart.forEach(item => {
+                    const subtotal = item.precio * item.cantidad;
+                    tbody.append(`
+                        <tr>
+                            <td><button onclick="removeItem(${item.id})" class="btn btn-danger" style="padding:0.25rem 0.5rem;"><i class="fa-solid fa-trash"></i></button></td>
+                            <td>
+                                <div style="font-weight:500;">${item.nombre}</div>
+                                <div style="font-size:0.75rem; color:#64748b;">${item.sku}</div>
+                            </td>
+                            <td style="text-align:right;">${formatter.format(item.precio)}</td>
+                            <td style="text-align:center;">
+                                <input type="number" class="qty-input" value="${item.cantidad}" min="1" max="${item.maxStock}" onchange="updateQty(${item.id}, this)" />
+                            </td>
+                            <td style="text-align:right; font-weight:600;">${formatter.format(subtotal)}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotalGlobal = 0;
+            let itbisGlobal = 0;
+
+            cart.forEach(item => {
+                const subLinea = item.precio * item.cantidad;
+                
+                if(item.tieneItbis) {
+                    // Precio de venta incluye el ITBIS? 
+                    // En nuestro backend dijimos: PrecioVenta = Costo + Ganancia.
+                    // Subtotal = Precio * Cant. ImpuestoMonto = (subtotal) * 18%. TotalNeto = Subtotal + Impuesto.
+                    subtotalGlobal += subLinea;
+                    itbisGlobal += (subLinea * 0.18);
+                } else {
+                    subtotalGlobal += subLinea;
+                }
+            });
+
+            const total = subtotalGlobal + itbisGlobal;
+
+            $('#lblSubtotal').text(formatter.format(subtotalGlobal));
+            $('#lblItbis').text(formatter.format(itbisGlobal));
+            $('#lblTotal').text(formatter.format(total));
+        }
+
+        // Checkout logic
+        $('#btnPagar').click(function() {
+            if(cart.length === 0) {
+                alert('Agregue al menos un producto a la factura.');
+                return;
+            }
+
+            const payload = {
+                ClienteId: parseInt($('#selCliente').val()),
+                MetodoPago: $('#selMetodoPago').val(),
+                Detalles: cart.map(c => ({
+                    ProductoId: c.id,
+                    Cantidad: c.cantidad,
+                    Descuento: 0 // Simplificación para este POS básico
+                }))
+            };
+
+            $(this).prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Procesando...');
+
+            $.ajax({
+                url: '/Factura/ProcesarVentaApi',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    if(res.success) {
+                        window.location.href = '/Factura/Detalle/' + res.facturaId;
+                    } else {
+                        alert(res.message);
+                        $('#btnPagar').prop('disabled', false).html('<i class="fa-solid fa-cash-register"></i> FACTURAR');
+                    }
+                },
+                error: function(err) {
+                    const msg = err.responseJSON ? err.responseJSON.message : "Error del servidor.";
+                    alert('Error al facturar: ' + msg);
+                    $('#btnPagar').prop('disabled', false).html('<i class="fa-solid fa-cash-register"></i> FACTURAR');
+                }
+            });
+        });
+    </script>
+}

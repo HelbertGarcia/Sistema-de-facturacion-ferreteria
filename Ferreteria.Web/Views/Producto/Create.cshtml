@@ -1,0 +1,125 @@
+@model Ferreteria.Application.DTOs.Productos.ProductoDto
+@{
+    bool isCreate = Model.Id == 0;
+    ViewData["Title"] = isCreate ? "Nuevo Producto" : "Editar Producto";
+}
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="title-header">
+        <h3>@ViewData["Title"]</h3>
+        <a asp-action="Index" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <form asp-action="@(isCreate ? "Create" : "Edit")" method="post">
+        @if (!isCreate) { <input type="hidden" asp-for="Id" /> <input type="hidden" asp-for="Sku" /> <input type="hidden" asp-for="StockActual" /> }
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            
+            <!-- Column 1: Basic Info -->
+            <div>
+                <h4 style="margin-bottom: 1rem; color: var(--brand-primary);"><i class="fa-solid fa-tag"></i> Información Básica</h4>
+                
+                <div class="form-group">
+                    <label asp-for="Nombre" class="form-label">Nombre del Artículo</label>
+                    <input asp-for="Nombre" class="form-control" autocomplete="off" />
+                    <span asp-validation-for="Nombre" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="CategoriaId" class="form-label">Categoría</label>
+                    <select asp-for="CategoriaId" asp-items="@ViewBag.CategoriasList" class="form-control">
+                        <option value="">-- Seleccione una --</option>
+                    </select>
+                    <span asp-validation-for="CategoriaId" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Marca" class="form-label">Marca</label>
+                    <input asp-for="Marca" class="form-control" autocomplete="off" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="UnidadMedida" class="form-label">Unidad de Medida</label>
+                    <select asp-for="UnidadMedida" class="form-control">
+                        <option value="Pieza">Pieza</option>
+                        <option value="Caja">Caja</option>
+                        <option value="Paquete">Paquete</option>
+                        <option value="Kilo">Kilogramo</option>
+                        <option value="Libra">Libra</option>
+                        <option value="Metro">Metro</option>
+                        <option value="Galon">Galón</option>
+                        <option value="Quintal">Quintal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label asp-for="CodigoBarra" class="form-label">Código de Barras (Opcional)</label>
+                    <input asp-for="CodigoBarra" class="form-control" autocomplete="off" />
+                </div>
+                
+                <div class="form-group">
+                    <label asp-for="StockMinimo" class="form-label">Stock Mínimo (Alerta)</label>
+                    <input asp-for="StockMinimo" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="StockMinimo" class="form-error"></span>
+                </div>
+            </div>
+
+            <!-- Column 2: Pricing -->
+            <div>
+                <h4 style="margin-bottom: 1rem; color: var(--brand-success);"><i class="fa-solid fa-money-bill-wave"></i> Precios e Impuestos</h4>
+
+                <div class="form-group">
+                    <label asp-for="PrecioCosto" class="form-label">Costo de Adquisición (RD$)</label>
+                    <input asp-for="PrecioCosto" class="form-control" type="number" step="0.01" id="precioCosto" />
+                    <span asp-validation-for="PrecioCosto" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="MargenGanancia" class="form-label">Margen de Ganancia (%)</label>
+                    <input asp-for="MargenGanancia" class="form-control" type="number" step="0.01" id="margen" />
+                    <span asp-validation-for="MargenGanancia" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Precio de Venta Sugerido (Proyectado)</label>
+                    <div style="padding: 0.75rem; background: #f8fafc; border: 1px dashed var(--border-color); border-radius: 8px; font-weight: 600; font-size: 1.1rem; color: var(--brand-primary);" id="precioVentaLabel">
+                        RD$ 0.00
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; margin-top: 1rem;">
+                    <input asp-for="TieneItbis" type="checkbox" style="width: 1.25rem; height: 1.25rem;" />
+                    <label asp-for="TieneItbis" style="margin: 0; font-weight: 600; color: var(--text-primary);">Aplica ITBIS (18%)</label>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label asp-for="Descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border:0; border-top: 1px solid var(--border-color); margin: 2rem 0;" />
+        
+        <div style="text-align: right;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem;"><i class="fa-solid fa-save"></i> Guardar Producto</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function calculatePrice() {
+                var cost = parseFloat($('#precioCosto').val()) || 0;
+                var margin = parseFloat($('#margen').val()) || 0;
+                var finalPrice = cost + (cost * (margin / 100));
+                
+                $('#precioVentaLabel').text('RD$ ' + finalPrice.toFixed(2));
+            }
+
+            $('#precioCosto, #margen').on('input', calculatePrice);
+            calculatePrice();
+        });
+    </script>
+}

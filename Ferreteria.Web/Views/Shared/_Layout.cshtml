@@ -1,0 +1,75 @@
+@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FerreteríaPOS</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-screwdriver-wrench"></i> FerrePOS
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="@Url.Action("Index", "Home")" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Factura")" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Factura" ? "active" : "")">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Facturación
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Cliente")" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Cliente" ? "active" : "")">
+                    <i class="fa-solid fa-users"></i> Clientes
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Producto")" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Producto" ? "active" : "")">
+                    <i class="fa-solid fa-boxes-stacked"></i> Inventario & Productos
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Index", "Inventario")" class="sidebar-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Inventario" ? "active" : "")">
+                    <i class="fa-solid fa-boxes-packing"></i> Movimientos / Registro
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("Reportes", "Home")" class="sidebar-link">
+                    <i class="fa-solid fa-chart-line"></i> Reportes
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="main-content">
+        <header class="topvar">
+            <div class="page-title">
+                <h2>@ViewData["Title"]</h2>
+            </div>
+            <div class="topvar-user">
+                @{
+                    var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity?.Name;
+                    var role = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+                }
+                <span><i class="fa-regular fa-user"></i> @fullName (@role)</span>
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                    <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="content-wrapper">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

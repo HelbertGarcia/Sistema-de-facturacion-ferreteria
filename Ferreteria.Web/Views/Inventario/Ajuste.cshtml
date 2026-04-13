@@ -1,0 +1,62 @@
+@model Ferreteria.Application.DTOs.Inventario.MovimientoDto
+@{
+    ViewData["Title"] = "Ajuste de Inventario / Merma";
+}
+
+<div class="card" style="max-width: 700px; margin: 0 auto; border-top: 4px solid var(--brand-danger);">
+    <div class="title-header">
+        <h3><i class="fa-solid fa-scale-unbalanced"></i> @ViewData["Title"]</h3>
+        <a asp-action="Index" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Registro</a>
+    </div>
+
+    <form asp-action="Ajuste" method="post">
+        
+        @if (!ViewData.ModelState.IsValid)
+        {
+             <div style="padding: 1rem; background: rgba(239,68,68,0.1); color: var(--brand-danger); border-radius: 8px; margin-bottom: 1.5rem;">
+                <div asp-validation-summary="All" style="margin:0;"></div>
+            </div>
+        }
+
+        <div class="form-group">
+            <label class="form-label">Producto a Ajustar</label>
+            <select asp-for="ProductoId" asp-items="@ViewBag.ProductosList" class="form-control" autofocus>
+                <option value="">-- Busque o Seleccione un Producto --</option>
+            </select>
+            <span asp-validation-for="ProductoId" class="form-error"></span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label">Tipo de Ajuste</label>
+                <select asp-for="TipoMovimiento" class="form-control">
+                    <option value="Salida">Descontar (Salida/Merma/Daño)</option>
+                    <option value="Entrada">Adicionar (Entrada Extra)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Cantidad</label>
+                <input asp-for="Cantidad" class="form-control" type="number" min="1" step="1" />
+                <span asp-validation-for="Cantidad" class="form-error"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Motivo (Obligatorio)</label>
+            <input asp-for="Motivo" class="form-control" autocomplete="off" placeholder="Ej. Producto dañado, Inventario Físico..." />
+            <span asp-validation-for="Motivo" class="form-error"></span>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Notas o Referencia Adicional (Opcional)</label>
+            <input asp-for="ProveedorOReferencia" class="form-control" autocomplete="off" />
+        </div>
+
+        <hr style="border:0; border-top: 1px solid var(--border-color); margin: 2rem 0;" />
+        
+        <div style="text-align: right;">
+            <button type="submit" class="btn btn-danger" style="padding: 0.8rem 2rem; font-size: 1.1rem;"><i class="fa-solid fa-save"></i> Aplicar Ajuste</button>
+        </div>
+    </form>
+</div>

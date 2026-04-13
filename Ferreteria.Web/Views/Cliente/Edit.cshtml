@@ -1,0 +1,61 @@
+@model Ferreteria.Application.DTOs.Clientes.ClienteDto
+@{
+    bool isCreate = Model == null || Model.Id == 0;
+    ViewData["Title"] = isCreate ? "Nuevo Cliente" : "Editar Cliente";
+}
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="title-header">
+        <h3>@ViewData["Title"]</h3>
+        <a asp-action="Index" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <form asp-action="@(isCreate ? "Create" : "Edit")" method="post">
+        @if (!isCreate) { <input type="hidden" asp-for="Id" /> }
+        
+        <div class="form-group">
+            <label asp-for="NombreRazonSocial" class="form-label">Nombre o Razón Social</label>
+            <input asp-for="NombreRazonSocial" class="form-control" autocomplete="off" />
+            <span asp-validation-for="NombreRazonSocial" class="form-error"></span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+            <div class="form-group">
+                <label asp-for="TipoIdentificacion" class="form-label">Tipo ID</label>
+                <select asp-for="TipoIdentificacion" class="form-control">
+                    <option value="Cédula">Cédula</option>
+                    <option value="RNC">RNC</option>
+                    <option value="Pasaporte">Pasaporte</option>
+                </select>
+                <span asp-validation-for="TipoIdentificacion" class="form-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NumeroIdentificacion" class="form-label">Documento</label>
+                <input asp-for="NumeroIdentificacion" class="form-control" autocomplete="off" />
+                <span asp-validation-for="NumeroIdentificacion" class="form-error"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Direccion" class="form-label">Dirección (Opcional)</label>
+            <input asp-for="Direccion" class="form-control" autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Telefono" class="form-label">Teléfono</label>
+            <input asp-for="Telefono" class="form-control" autocomplete="off" />
+            <span asp-validation-for="Telefono" class="form-error"></span>
+        </div>
+
+        <hr style="border:0; border-top: 1px solid var(--border-color); margin: 2rem 0;" />
+        
+        <div style="text-align: right;">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Guardar Cliente</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+}
