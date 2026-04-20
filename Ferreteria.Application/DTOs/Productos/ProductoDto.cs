@@ -5,20 +5,19 @@ namespace Ferreteria.Application.DTOs.Productos
     public class ProductoDto
     {
         public int Id { get; set; }
-
-        public string Sku { get; set; } = string.Empty;
+        public string? Sku { get; set; }
 
         [Required(ErrorMessage = "El nombre es requerido.")]
         public string Nombre { get; set; } = string.Empty;
         
-        public string Descripcion { get; set; } = string.Empty;
-        public string Marca { get; set; } = string.Empty;
-        public string CodigoBarra { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public string? Marca { get; set; }
+        public string? CodigoBarra { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Seleccione una categoría.")]
         public int CategoriaId { get; set; }
-        public string CategoriaNombre { get; set; } = string.Empty;
+        public string? CategoriaNombre { get; set; }
 
         [Required]
         public decimal PrecioCosto { get; set; }
@@ -40,9 +39,9 @@ namespace Ferreteria.Application.DTOs.Productos
         [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo.")]
         public int StockMinimo { get; set; }
 
-        public string ImagenUrl { get; set; } = string.Empty;
+        public string? ImagenUrl { get; set; }
         
-        public string Estado { get; set; } = "Activo";
+        public string? Estado { get; set; } = "Activo";
         
         public bool RequiereReposicion => StockActual <= StockMinimo;
     }

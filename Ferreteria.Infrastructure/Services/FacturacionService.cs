@@ -230,6 +230,9 @@ namespace Ferreteria.Infrastructure.Services
         public async Task<ReporteCajaDto> ObtenerReporteCajaAsync(DateTime fechaVenta)
         {
             var facturasDia = await _context.Facturas
+                .Include(f => f.Cliente)
+                .Include(f => f.Vendedor)
+                .Include(f => f.Detalles).ThenInclude(d => d.Producto)
                 .Where(f => f.FechaEmision.Date == fechaVenta.Date && f.Estado == "Completada")
                 .ToListAsync();
 
@@ -239,12 +242,84 @@ namespace Ferreteria.Infrastructure.Services
 
             return new ReporteCajaDto
             {
+                TotalBruto = facturasDia.Sum(f => f.Subtotal - f.DescuentoTotal),
+                TotalItbis = facturasDia.Sum(f => f.ImpuestosTotal),
                 TotalVendido = facturasDia.Sum(f => f.TotalGeneral),
                 CantidadFacturas = facturasDia.Count,
                 CantidadAnuladas = anuladas,
                 TotalEfectivo = facturasDia.Where(f => f.MetodoPago == "Efectivo").Sum(f => f.TotalGeneral),
                 TotalTarjeta = facturasDia.Where(f => f.MetodoPago == "Tarjeta").Sum(f => f.TotalGeneral),
-                TotalTransferencia = facturasDia.Where(f => f.MetodoPago == "Transferencia").Sum(f => f.TotalGeneral)
+                TotalTransferencia = facturasDia.Where(f => f.MetodoPago == "Transferencia").Sum(f => f.TotalGeneral),
+                Transacciones = facturasDia.Select(MapToVistaFactura).ToList()
+            };
+        }
+
+        public async Task<IEnumerable<ProductoTopVendidoDto>> ObtenerTopProductosVendidosAsync(int limite, DateTime? desde = null, DateTime? hasta = null)
+        {
+            var query = _context.FacturaDetalles
+                .Include(d => d.Factura)
+                .Include(d => d.Producto)
+                .ThenInclude(p => p.Categoria)
+                .Where(d => d.Factura.Estado == "Completada");
+
+            if (desde.HasValue)
+                query = query.Where(d => d.Factura.FechaEmision.Date >= desde.Value.Date);
+            if (hasta.HasValue)
+                query = query.Where(d => d.Factura.FechaEmision.Date <= hasta.Value.Date);
+
+            var top = await query
+                .GroupBy(d => new { d.ProductoId, d.Producto.Sku, d.Producto.Nombre, Categoria = d.Producto.Categoria.Nombre })
+                .Select(g => new ProductoTopVendidoDto
+                {
+                    ProductoId = g.Key.ProductoId,
+                    Sku = g.Key.Sku,
+                    ProductoNombre = g.Key.Nombre,
+                    CategoriaNombre = g.Key.Categoria,
+                    CantidadVendida = g.Sum(x => x.Cantidad),
+                    MontoGenerado = g.Sum(x => x.TotalLinea)
+                })
+                .OrderByDescending(x => x.CantidadVendida)
+                .Take(limite)
+                .ToListAsync();
+
+            return top;
+        }
+
+        public async Task<DashboardTendenciasDto> ObtenerTendenciaVentasUltimaSemanaAsync()
+        {
+            var semanaAtras = DateTime.UtcNow.ToLocalTime().Date.AddDays(-6);
+            
+            var ventas = await _context.Facturas
+                .Where(f => f.Estado == "Completada" && f.FechaEmision.Date >= semanaAtras)
+                .GroupBy(f => f.FechaEmision.Date)
+                .Select(g => new { Fecha = g.Key, Total = g.Sum(x => x.TotalGeneral) })
+                .ToListAsync();
+
+            var labels = new List<string>();
+            var data = new List<decimal>();
+
+            for (int i = 0; i < 7; i++)
+            {
+                var d = semanaAtras.AddDays(i);
+                labels.Add(d.ToString("dd/MMM"));
+                data.Add(ventas.FirstOrDefault(v => v.Fecha == d)?.Total ?? 0);
+            }
+
+            // Also category distribution for the month
+            var mesActual = DateTime.UtcNow.ToLocalTime().Month;
+            var yearActual = DateTime.UtcNow.ToLocalTime().Year;
+
+            var categorias = await _context.FacturaDetalles
+                .Include(d => d.Factura)
+                .Include(d => d.Producto).ThenInclude(p => p.Categoria)
+                .Where(d => d.Factura.Estado == "Completada" && d.Factura.FechaEmision.Month == mesActual && d.Factura.FechaEmision.Year == yearActual)
+                .GroupBy(d => d.Producto.Categoria.Nombre)
+                .Select(g => new { Categoria = g.Key, Total = g.Sum(x => x.TotalLinea) })
+                .ToListAsync();
+
+            return new DashboardTendenciasDto { 
+                Tendencia = new TendenciaData { Labels = labels, Data = data }, 
+                Distribucion = new TendenciaData { Labels = categorias.Select(c => c.Categoria).ToList(), Data = categorias.Select(c => c.Total).ToList() } 
             };
         }
     }

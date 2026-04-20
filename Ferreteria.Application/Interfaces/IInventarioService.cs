@@ -10,5 +10,6 @@ namespace Ferreteria.Application.Interfaces
         Task<bool> RegistrarAjusteAsync(MovimientoDto dto, string usuario);
         Task<IEnumerable<MovimientoDto>> ObtenerKardexAsync(int? productoId = null);
         Task<DashboardInventarioDto> ObtenerDashboardInvetarioAsync();
+        Task<ReporteValorizacionDto> ObtenerReporteValorizacionAsync(int? categoriaId = null);
     }
 }

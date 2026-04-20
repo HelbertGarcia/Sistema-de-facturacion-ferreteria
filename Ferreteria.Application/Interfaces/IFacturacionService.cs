@@ -11,5 +11,7 @@ namespace Ferreteria.Application.Interfaces
         Task<IEnumerable<VistaFacturaDto>> ObtenerHistorialAsync(string search = "");
         Task<bool> AnularFacturaAsync(int id, string adminUser);
         Task<ReporteCajaDto> ObtenerReporteCajaAsync(DateTime fechaVenta);
+        Task<IEnumerable<ProductoTopVendidoDto>> ObtenerTopProductosVendidosAsync(int limite, DateTime? desde = null, DateTime? hasta = null);
+        Task<DashboardTendenciasDto> ObtenerTendenciaVentasUltimaSemanaAsync();
     }
 }

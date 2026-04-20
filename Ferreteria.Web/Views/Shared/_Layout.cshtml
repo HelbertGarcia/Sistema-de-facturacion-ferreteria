@@ -40,8 +40,18 @@
                 </a>
             </li>
             <li>
-                <a href="@Url.Action("Reportes", "Home")" class="sidebar-link">
-                    <i class="fa-solid fa-chart-line"></i> Reportes
+                <a href="@Url.Action("Reportes", "Home")" class="sidebar-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Reportes" ? "active" : "")">
+                    <i class="fa-solid fa-cash-register"></i> Cierre Diario
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("TopSellers", "Home")" class="sidebar-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "TopSellers" ? "active" : "")">
+                    <i class="fa-solid fa-trophy"></i> Top Productos
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("InventarioValorizado", "Home")" class="sidebar-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "InventarioValorizado" ? "active" : "")">
+                    <i class="fa-solid fa-boxes-stacked"></i> Valorización
                 </a>
             </li>
         </ul>

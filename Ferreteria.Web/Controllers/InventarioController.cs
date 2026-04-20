@@ -65,7 +65,7 @@ namespace Ferreteria.Web.Controllers
                 return View(dto);
             }
 
-            return RedirectToAction("Index", "Producto");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]

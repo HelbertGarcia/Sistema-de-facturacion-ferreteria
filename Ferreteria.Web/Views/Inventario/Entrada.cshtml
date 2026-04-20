@@ -10,6 +10,8 @@
     </div>
 
     <form asp-action="Entrada" method="post">
+        <input type="hidden" asp-for="Motivo" />
+        <input type="hidden" asp-for="TipoMovimiento" />
         
         @if (!ViewData.ModelState.IsValid)
         {

@@ -12,5 +12,6 @@ namespace Ferreteria.Application.Interfaces
         Task<bool> UpdateAsync(ClienteDto clienteDto);
         Task<bool> DeleteLogicalAsync(int id);
         Task<bool> ExistsIdentificacionAsync(string numeroIdentificacion, int excludeId = 0);
+        Task<int> ObtenerNuevosClientesHoyAsync();
     }
 }

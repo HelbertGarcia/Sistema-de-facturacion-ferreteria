@@ -24,6 +24,6 @@ namespace Ferreteria.Application.DTOs.Inventario
         public int Cantidad { get; set; }
 
         public decimal CostoUnitario { get; set; }
-        public string ProveedorOReferencia { get; set; } = string.Empty;
+        public string? ProveedorOReferencia { get; set; }
     }
 }

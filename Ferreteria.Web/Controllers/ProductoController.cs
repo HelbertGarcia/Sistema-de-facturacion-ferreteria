@@ -58,6 +58,8 @@ namespace Ferreteria.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(ProductoDto dto)
         {
+            ClearImplicitValidationErrors();
+            
             if (!ModelState.IsValid)
             {
                 await PopulateCategoriasViewBag(dto.CategoriaId);
@@ -81,6 +83,8 @@ namespace Ferreteria.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(ProductoDto dto)
         {
+            ClearImplicitValidationErrors();
+            
             if (!ModelState.IsValid)
             {
                 await PopulateCategoriasViewBag(dto.CategoriaId);
@@ -109,6 +113,13 @@ namespace Ferreteria.Web.Controllers
         {
             var categorias = await _categoriaService.GetAllAsync();
             ViewBag.CategoriasList = new SelectList(categorias, "Id", "Nombre", selectedId);
+        }
+
+        private void ClearImplicitValidationErrors()
+        {
+            ModelState.Remove(nameof(ProductoDto.PrecioVenta));
+            ModelState.Remove(nameof(ProductoDto.Itbis));
+            ModelState.Remove(nameof(ProductoDto.StockActual));
         }
     }
 }

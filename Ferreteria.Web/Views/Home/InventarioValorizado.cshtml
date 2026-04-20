@@ -1,0 +1,114 @@
+@model Ferreteria.Application.DTOs.Inventario.ReporteValorizacionDto
+@{
+    ViewData["Title"] = "Inventario Valorizado";
+}
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="title-header">
+        <h3><i class="fa-solid fa-boxes-stacked" style="color: var(--brand-primary);"></i> Valorización del Inventario</h3>
+    </div>
+    
+    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <form asp-action="InventarioValorizado" method="get" style="display: flex; gap: 1rem; align-items: center;">
+            <label class="form-label" style="margin:0;">Filtrar por Categoría:</label>
+            <select name="categoriaId" class="form-control" style="max-width: 200px;">
+                <option value="">-- Todas las categorías --</option>
+                @if (ViewBag.Categorias != null)
+                {
+                    foreach (var cat in ViewBag.Categorias)
+                    {
+                        if (ViewBag.CategoriaId != null && ViewBag.CategoriaId.ToString() == cat.Id.ToString())
+                        {
+                            <option value="@cat.Id" selected>@cat.Nombre</option>
+                        }
+                        else
+                        {
+                            <option value="@cat.Id">@cat.Nombre</option>
+                        }
+                    }
+                }
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filtrar</button>
+            <a asp-action="InventarioValorizado" class="btn btn-outline"><i class="fa-solid fa-eraser"></i> Limpiar</a>
+        </form>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="border-top: 4px solid var(--text-secondary); text-align: center;">
+        <span style="font-weight: 600; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem;">Costo Invertido Total</span>
+        <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;">
+            @Model.TotalCostoInvertido.ToString("C2")
+        </div>
+    </div>
+    
+    <div class="card" style="border-top: 4px solid var(--brand-primary); text-align: center;">
+        <span style="font-weight: 600; color: var(--brand-primary); text-transform: uppercase; font-size: 0.85rem;">Valor de Venta Total</span>
+        <div style="font-size: 2rem; font-weight: 700; color: var(--brand-primary); margin-top: 0.5rem;">
+            @Model.TotalValorVenta.ToString("C2")
+        </div>
+    </div>
+    
+    <div class="card" style="border-top: 4px solid var(--brand-success); text-align: center;">
+        <span style="font-weight: 600; color: var(--brand-success); text-transform: uppercase; font-size: 0.85rem;">Ganancia Potencial Bruta</span>
+        <div style="font-size: 2rem; font-weight: 700; color: var(--brand-success); margin-top: 0.5rem;">
+            @Model.TotalGananciaPotencial.ToString("C2")
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h4>Detalle por Producto</h4>
+        <button class="btn btn-outline" onclick="window.print();"><i class="fa-solid fa-print"></i> Exportar</button>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th style="text-align: right;">Stock</th>
+                    <th style="text-align: right;">Costo (U)</th>
+                    <th style="text-align: right;">Valor Venta (U)</th>
+                    <th style="text-align: right;">Costo Total</th>
+                    <th style="text-align: right;">Ganancia Pot.</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model.Productos.OrderByDescending(x => x.CostoTotal))
+                {
+                    <tr>
+                        <td><strong>@item.ProductoNombre</strong></td>
+                        <td>@item.CategoriaNombre</td>
+                        <td style="text-align: right; font-weight: 600;">@item.StockActual</td>
+                        <td style="text-align: right;">@item.CostoUnitario.ToString("C2")</td>
+                        <td style="text-align: right;">@item.PrecioVenta.ToString("C2")</td>
+                        <td style="text-align: right; color: var(--text-secondary); font-weight: 600;">@item.CostoTotal.ToString("C2")</td>
+                        <td style="text-align: right; color: var(--brand-success); font-weight: 600;">@item.GananciaPotencial.ToString("C2")</td>
+                        <td style="text-align: center;">
+                            @if(item.EstaInactivo)
+                            {
+                                <span class="badge badge-inactive" title="Más de 60 días sin ventas">Estancado</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-active">En Rotación</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body * { visibility: hidden; }
+        .card, .card * { visibility: visible; }
+        .card { position: relative; border: none !important; box-shadow: none !important; margin: 0; padding: 0; }
+        .btn, .sidebar, .topvar, form { display: none !important; }
+    }
+</style>

@@ -11,7 +11,7 @@
     <div class="card" style="border-top: 4px solid var(--brand-primary);">
         <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem;">Ventas de Hoy</h4>
         <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
-            RD$ 0.00
+            RD$ @(ViewBag.VentasDeHoy?.ToString("N2") ?? "0.00")
         </div>
         <a asp-controller="Factura" asp-action="Index" style="font-size: 0.85rem; font-weight: 500;">Ver facturas &rarr;</a>
     </div>
@@ -19,7 +19,7 @@
     <div class="card" style="border-top: 4px solid var(--brand-success);">
         <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem;">Clientes Nuevos</h4>
         <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
-            0
+            @(ViewBag.ClientesNuevos ?? 0)
         </div>
         <a asp-controller="Cliente" asp-action="Index" style="font-size: 0.85rem; font-weight: 500;">Ver clientes &rarr;</a>
     </div>
@@ -27,8 +27,65 @@
     <div class="card" style="border-top: 4px solid var(--brand-danger);">
         <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 1rem;">Alertas de Stock</h4>
         <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
-            0
+            @(ViewBag.AlertasStock ?? 0)
         </div>
         <a asp-controller="Inventario" asp-action="Index" style="font-size: 0.85rem; font-weight: 500;">Ver inventario bajo &rarr;</a>
     </div>
 </div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+    <div class="card">
+        <h4 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-chart-line"></i> Tendencia de Ventas (Últimos 7 días)</h4>
+        <canvas id="ventasChart" height="100"></canvas>
+    </div>
+    
+    <div class="card">
+        <h4 style="margin-bottom: 1.5rem;"><i class="fa-solid fa-chart-pie"></i> Ventas por Categoría (Este Mes)</h4>
+        <canvas id="categoriaChart" height="200"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var tendLabels = @Html.Raw(Json.Serialize(((Ferreteria.Application.DTOs.Facturacion.DashboardTendenciasDto)ViewBag.Tendencias)?.Tendencia?.Labels ?? new List<string>()));
+            var tendData = @Html.Raw(Json.Serialize(((Ferreteria.Application.DTOs.Facturacion.DashboardTendenciasDto)ViewBag.Tendencias)?.Tendencia?.Data ?? new List<decimal>()));
+            
+            var catLabels = @Html.Raw(Json.Serialize(((Ferreteria.Application.DTOs.Facturacion.DashboardTendenciasDto)ViewBag.Tendencias)?.Distribucion?.Labels ?? new List<string>()));
+            var catData = @Html.Raw(Json.Serialize(((Ferreteria.Application.DTOs.Facturacion.DashboardTendenciasDto)ViewBag.Tendencias)?.Distribucion?.Data ?? new List<decimal>()));
+
+            var ctxVentas = document.getElementById('ventasChart').getContext('2d');
+            new Chart(ctxVentas, {
+                type: 'line',
+                data: {
+                    labels: tendLabels,
+                    datasets: [{
+                        label: 'Ventas Diarias (RD$)',
+                        data: tendData,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            var ctxCat = document.getElementById('categoriaChart').getContext('2d');
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catData,
+                        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true }
+            });
+        });
+    </script>
+}

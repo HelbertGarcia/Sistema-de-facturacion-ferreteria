@@ -155,5 +155,59 @@ namespace Ferreteria.Infrastructure.Services
                 ProductosAgotados = agotados
             };
         }
+
+        public async Task<ReporteValorizacionDto> ObtenerReporteValorizacionAsync(int? categoriaId = null)
+        {
+            var query = _context.Productos.Include(p => p.Categoria).Where(p => p.Estado == "Activo").AsQueryable();
+
+            if (categoriaId.HasValue && categoriaId.Value > 0)
+            {
+                query = query.Where(p => p.CategoriaId == categoriaId.Value);
+            }
+
+            var limitDate = DateTime.UtcNow.Date.AddDays(-60);
+
+            var productosData = await query.Select(p => new
+            {
+                p.Id,
+                p.Nombre,
+                Categoria = p.Categoria.Nombre,
+                p.StockActual,
+                p.PrecioCosto,
+                p.PrecioVenta,
+                UltimaVenta = _context.FacturaDetalles
+                    .Where(fd => fd.ProductoId == p.Id && fd.Factura.Estado == "Completada")
+                    .OrderByDescending(fd => fd.Factura.FechaEmision)
+                    .Select(fd => (DateTime?)fd.Factura.FechaEmision)
+                    .FirstOrDefault()
+            }).ToListAsync();
+
+            var result = new ReporteValorizacionDto();
+
+            foreach (var p in productosData)
+            {
+                bool estancado = p.StockActual > 0 && 
+                    (!p.UltimaVenta.HasValue || p.UltimaVenta.Value.Date <= limitDate);
+
+                var dto = new ProductoValorizadoDto
+                {
+                    ProductoId = p.Id,
+                    ProductoNombre = p.Nombre,
+                    CategoriaNombre = p.Categoria,
+                    StockActual = p.StockActual,
+                    CostoUnitario = p.PrecioCosto,
+                    PrecioVenta = p.PrecioVenta,
+                    EstaInactivo = estancado
+                };
+
+                result.Productos.Add(dto);
+            }
+
+            result.TotalCostoInvertido = result.Productos.Sum(x => x.CostoTotal);
+            result.TotalValorVenta = result.Productos.Sum(x => x.ValorVentaTotal);
+            result.TotalGananciaPotencial = result.TotalValorVenta - result.TotalCostoInvertido;
+
+            return result;
+        }
     }
 }

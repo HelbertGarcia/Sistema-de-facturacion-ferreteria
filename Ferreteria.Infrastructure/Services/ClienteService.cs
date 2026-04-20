@@ -113,5 +113,11 @@ namespace Ferreteria.Infrastructure.Services
         {
             return await _context.Clientes.AnyAsync(c => c.NumeroIdentificacion == numeroIdentificacion && c.Id != excludeId);
         }
+
+        public async Task<int> ObtenerNuevosClientesHoyAsync()
+        {
+            var hoy = System.DateTime.UtcNow.ToLocalTime().Date;
+            return await _context.Clientes.CountAsync(c => c.FechaCreacion.Date == hoy);
+        }
     }
 }

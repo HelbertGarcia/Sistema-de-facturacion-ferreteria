@@ -1,0 +1,108 @@
+@model IEnumerable<Ferreteria.Application.DTOs.Facturacion.ProductoTopVendidoDto>
+@{
+    ViewData["Title"] = "Top Productos Más Vendidos";
+}
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="title-header">
+        <h3><i class="fa-solid fa-trophy" style="color: var(--brand-warning);"></i> Top Productos Más Vendidos</h3>
+    </div>
+    
+    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+        <form asp-action="TopSellers" method="get" style="display: flex; gap: 1rem; align-items: end;">
+            <div>
+                <label class="form-label">Desde:</label>
+                <input type="date" name="desde" class="form-control" value="@ViewBag.Desde?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div>
+                <label class="form-label">Hasta:</label>
+                <input type="date" name="hasta" class="form-control" value="@ViewBag.Hasta?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div>
+                <label class="form-label">Límite:</label>
+                <select name="limite" class="form-control">
+                    <option value="10" selected="@(ViewBag.Limite == 10)">Top 10</option>
+                    <option value="20" selected="@(ViewBag.Limite == 20)">Top 20</option>
+                    <option value="50" selected="@(ViewBag.Limite == 50)">Top 50</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>SKU</th>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th style="text-align: right;">Cant. Vendida</th>
+                        <th style="text-align: right;">Total Recaudado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int i = 1; }
+                    @foreach(var item in Model)
+                    {
+                        <tr>
+                            <td><strong>@i</strong></td>
+                            <td>@item.Sku</td>
+                            <td>@item.ProductoNombre</td>
+                            <td><span class="badge" style="background: #e2e8f0; color: #475569;">@item.CategoriaNombre</span></td>
+                            <td style="text-align: right; font-weight: 600; color: var(--brand-primary);">@item.CantidadVendida</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--brand-success);">@item.MontoGenerado.ToString("C2")</td>
+                        </tr>
+                        i++;
+                    }
+                    @if(!Model.Any())
+                    {
+                        <tr><td colspan="6" style="text-align: center;">No hay información para este periodo</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h4 style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-bar"></i> Volumen de Ganancia</h4>
+        <canvas id="topChart" height="300"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var labels = @Html.Raw(Json.Serialize(Model.Select(x => x.ProductoNombre).ToList()));
+            var data = @Html.Raw(Json.Serialize(Model.Select(x => x.MontoGenerado).ToList()));
+
+            var ctx = document.getElementById('topChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Recaudación (RD$)',
+                        data: data,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false } // Hide labels if too many
+                    }
+                }
+            });
+        });
+    </script>
+}

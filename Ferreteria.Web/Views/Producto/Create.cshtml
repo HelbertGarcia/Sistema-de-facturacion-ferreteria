@@ -13,6 +13,8 @@
     <form asp-action="@(isCreate ? "Create" : "Edit")" method="post">
         @if (!isCreate) { <input type="hidden" asp-for="Id" /> <input type="hidden" asp-for="Sku" /> <input type="hidden" asp-for="StockActual" /> }
         
+        <div asp-validation-summary="All" class="form-error" style="margin-bottom: 1rem;"></div>
+        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             
             <!-- Column 1: Basic Info -->
