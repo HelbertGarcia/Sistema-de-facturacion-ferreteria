@@ -42,8 +42,17 @@
                     <tr>
                         <td style="font-family: monospace; font-size: 0.9rem; color: var(--text-secondary);">@p.Sku</td>
                         <td>
-                            <div style="font-weight: 500;">@p.Nombre</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">@p.Marca</div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                @if(!string.IsNullOrEmpty(p.ImagenUrl)) {
+                                    <img src="@p.ImagenUrl" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);" alt="img" />
+                                } else {
+                                    <div style="width:40px; height:40px; background:#f1f5f9; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#94a3b8;"><i class="fa-solid fa-box"></i></div>
+                                }
+                                <div>
+                                    <div style="font-weight: 500;">@p.Nombre</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">@p.Marca</div>
+                                </div>
+                            </div>
                         </td>
                         <td><span class="badge" style="background:#f1f5f9; color:#475569;">@p.CategoriaNombre</span></td>
                         <td>@p.PrecioCosto.ToString("C2")</td>

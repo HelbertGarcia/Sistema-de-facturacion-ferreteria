@@ -53,7 +53,8 @@ namespace Ferreteria.Web.Controllers
                     nombre = p.Nombre,
                     precioVenta = p.PrecioVenta,
                     tieneItbis = p.TieneItbis,
-                    stock = p.StockActual
+                    stock = p.StockActual,
+                    imagenUrl = p.ImagenUrl
                 }).Take(10);
 
             return Json(results);

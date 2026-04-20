@@ -3,6 +3,9 @@ using Ferreteria.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Hosting;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Ferreteria.Web.Controllers
@@ -12,11 +15,13 @@ namespace Ferreteria.Web.Controllers
     {
         private readonly IProductoService _productoService;
         private readonly ICategoriaService _categoriaService;
+        private readonly IWebHostEnvironment _env;
 
-        public ProductoController(IProductoService productoService, ICategoriaService categoriaService)
+        public ProductoController(IProductoService productoService, ICategoriaService categoriaService, IWebHostEnvironment env)
         {
             _productoService = productoService;
             _categoriaService = categoriaService;
+            _env = env;
         }
 
         public async Task<IActionResult> Index(string search = "", int? categoriaId = null)
@@ -56,7 +61,7 @@ namespace Ferreteria.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ProductoDto dto)
+        public async Task<IActionResult> Create(ProductoDto dto, Microsoft.AspNetCore.Http.IFormFile? ImagenUpload)
         {
             ClearImplicitValidationErrors();
             
@@ -64,6 +69,21 @@ namespace Ferreteria.Web.Controllers
             {
                 await PopulateCategoriasViewBag(dto.CategoriaId);
                 return View(dto);
+            }
+
+            if (ImagenUpload != null && ImagenUpload.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "productos");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImagenUpload.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImagenUpload.CopyToAsync(fileStream);
+                }
+                dto.ImagenUrl = "/images/productos/" + uniqueFileName;
             }
 
             await _productoService.AddAsync(dto);
@@ -81,7 +101,7 @@ namespace Ferreteria.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(ProductoDto dto)
+        public async Task<IActionResult> Edit(ProductoDto dto, Microsoft.AspNetCore.Http.IFormFile? ImagenUpload)
         {
             ClearImplicitValidationErrors();
             
@@ -89,6 +109,21 @@ namespace Ferreteria.Web.Controllers
             {
                 await PopulateCategoriasViewBag(dto.CategoriaId);
                 return View("Create", dto);
+            }
+
+            if (ImagenUpload != null && ImagenUpload.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "productos");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImagenUpload.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ImagenUpload.CopyToAsync(fileStream);
+                }
+                dto.ImagenUrl = "/images/productos/" + uniqueFileName;
             }
 
             await _productoService.UpdateAsync(dto);

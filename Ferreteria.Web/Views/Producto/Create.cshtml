@@ -10,8 +10,8 @@
         <a asp-action="Index" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Volver</a>
     </div>
 
-    <form asp-action="@(isCreate ? "Create" : "Edit")" method="post">
-        @if (!isCreate) { <input type="hidden" asp-for="Id" /> <input type="hidden" asp-for="Sku" /> <input type="hidden" asp-for="StockActual" /> }
+    <form asp-action="@(isCreate ? "Create" : "Edit")" method="post" enctype="multipart/form-data">
+        @if (!isCreate) { <input type="hidden" asp-for="Id" /> <input type="hidden" asp-for="Sku" /> <input type="hidden" asp-for="StockActual" /> <input type="hidden" asp-for="ImagenUrl" /> }
         
         <div asp-validation-summary="All" class="form-error" style="margin-bottom: 1rem;"></div>
         
@@ -63,6 +63,18 @@
                     <label asp-for="StockMinimo" class="form-label">Stock Mínimo (Alerta)</label>
                     <input asp-for="StockMinimo" class="form-control" type="number" min="0" />
                     <span asp-validation-for="StockMinimo" class="form-error"></span>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label for="ImagenUpload" class="form-label">Imagen del Producto</label>
+                    @if (!isCreate && !string.IsNullOrEmpty(Model.ImagenUrl))
+                    {
+                        <div style="margin-bottom: 0.5rem;">
+                            <img src="@Model.ImagenUrl" alt="Miniatura" style="max-width: 100px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: cover;" />
+                        </div>
+                    }
+                    <input name="ImagenUpload" id="ImagenUpload" type="file" class="form-control" accept="image/*" />
+                    <small style="color: var(--text-secondary);">Selecciona una imagen (JPG, PNG). Opcional.</small>
                 </div>
             </div>
 
