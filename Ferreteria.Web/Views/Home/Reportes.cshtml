@@ -110,7 +110,7 @@
                             <span class="badge @(t.Estado == "Completada" ? "badge-active" : "badge-inactive")">@t.Estado</span>
                         </td>
                         <td>
-                            <a asp-controller="Factura" asp-action="VerDetalle" asp-route-id="@t.Id" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Ver</a>
+                            <a asp-controller="Factura" asp-action="Detalle" asp-route-id="@t.Id" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Ver</a>
                         </td>
                     </tr>
                 }
