@@ -2,5 +2,6 @@
   <Project Path="Ferreteria.Application/Ferreteria.Application.csproj" />
   <Project Path="Ferreteria.Domain/Ferreteria.Domain.csproj" />
   <Project Path="Ferreteria.Infrastructure/Ferreteria.Infrastructure.csproj" />
+  <Project Path="Ferreteria.Tests/Ferreteria.Tests.csproj" />
   <Project Path="Ferreteria.Web/Ferreteria.Web.csproj" />
 </Solution>
